@@ -27,7 +27,12 @@ flask db migrate -m "Describe your change"
 flask db upgrade -Apply the migration
 flask db downgrade -Roll back the most recent migration
 
-hot to add data
+how to add data
 \Repos\CS631_Project\CS631_Project\CS631_Project> flask seed-db
 flash seed-db
 
+How to start the web application
+send $env:FLASK_APP="manage.py"
+Repos\CS631_Project\CS631_Project> $env:FLASK_APP="manage.py"
+send flask run
+Repos\CS631_Project\CS631_Project> flask run
