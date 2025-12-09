@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from datetime import datetime, date
-from .models import db, Employee, Department, Division, EmployeeTitle
+from .models import db, Employee, Department, Division, EmployeeSalary
 
 main_bp = Blueprint('main', __name__)
 
@@ -24,10 +24,9 @@ def test_template():
 @main_bp.route('/human-resources')
 def human_resources():
     results = (
-        db.session.query(Employee, Department, Division, EmployeeTitle)
+        db.session.query(Employee, Department, Division, EmployeeSalary)
         .join(Department, Employee.department_name == Department.department_name, isouter=True)
         .join(Division, Department.division_name == Division.division_name, isouter=True)
-        .join(EmployeeTitle, Employee.title == EmployeeTitle.title, isouter=True)
         .filter(Employee.is_active == True)
         .all()
     )

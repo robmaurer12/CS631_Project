@@ -71,10 +71,16 @@ class DepartmentRoom(db.Model):
     department_name = db.Column(db.String(50), db.ForeignKey('departments.department_name'))
     office_number = db.Column(db.String(10), db.ForeignKey('rooms.office_number'))
 
-class EmployeeTitle(db.Model):
-    __tablename__ = 'employee_titles'
-    title = db.Column(db.String(50), primary_key=True)
-    salary = db.Column(db.Float)
+class EmployeeSalary(db.Model):
+    __tablename__ = 'employee_salaries'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    employee_no = db.Column(db.Integer, db.ForeignKey('employees.employee_no'), nullable=False)
+    salary = db.Column(db.Float, nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=True)  # Null means current salary
+    type = db.Column(db.String(20), nullable=False)  # 'salary' or 'hourly'
+
+    employee = db.relationship('Employee', backref=db.backref('salaries', lazy=True))
 
 class SalaryPayment(db.Model):
     __tablename__ = 'salary_payments'

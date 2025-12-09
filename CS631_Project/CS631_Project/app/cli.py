@@ -13,7 +13,7 @@ from .models import (
     Room,
     EmployeeRoom,
     DepartmentRoom,
-    EmployeeTitle,
+    EmployeeSalary,
     SalaryPayment,
 )
 
@@ -30,7 +30,7 @@ def seed_db():
     EmployeeProject.query.delete()
     EmployeeRoom.query.delete()
     DepartmentRoom.query.delete()
-    EmployeeTitle.query.delete()
+    EmployeeSalary.query.delete()
     Employee.query.delete()        
     Project.query.delete()        
     Room.query.delete()
@@ -384,14 +384,31 @@ def seed_db():
     ])
     db.session.commit()
 
-    # EmployeeTitles (example titles and salaries)
-    db.session.add_all([
-        EmployeeTitle(title="Junior Developer", salary=60000),
-        EmployeeTitle(title="Senior Developer", salary=90000),
-        EmployeeTitle(title="Network Specialist", salary=75000),
-        EmployeeTitle(title="HR Manager", salary=80000),
-        EmployeeTitle(title="Division Analyst", salary=70000),
-    ])
+    salary_records = [
+        # employee_no, salary, start_date, end_date, type
+        (1, 85000, date(2021, 2, 15), date(2023, 12, 31), 'salary'),
+        (1, 90000, date(2024, 1, 1), None, 'salary'),  # current salary
+    
+        (2, 70000, date(2020, 7, 1), date(2024, 5, 31), 'salary'),
+        (2, 75000, date(2024, 6, 1), None, 'salary'),
+    
+        (3, 75000, date(2019, 11, 12), None, 'salary'),
+    
+        (4, 30, date(2022, 4, 21), None, 'hourly'),  # hourly wage
+    
+        # Add more as needed...
+    ]
+
+    for emp_no, salary, start, end, sal_type in salary_records:
+        emp_salary = EmployeeSalary(
+            employee_no=emp_no,
+            salary=salary,
+            start_date=start,
+            end_date=end,
+            type=sal_type
+        )
+        db.session.add(emp_salary)
+
     db.session.commit()
 
     salaries = [

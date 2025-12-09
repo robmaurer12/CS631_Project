@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from .models import db, Employee, Department, Division, EmployeeTitle
+from .models import db, Employee, Department, Division, EmployeeSalary
 
 hr_bp = Blueprint('hr', __name__)
 
@@ -7,10 +7,9 @@ hr_bp = Blueprint('hr', __name__)
 def get_employees():
     # Join employees  departments  divisions  titles
     employees = (
-        db.session.query(Employee, Department, Division, EmployeeTitle)
+        db.session.query(Employee, Department, Division, EmployeeSalary)
         .join(Department, Employee.department_name == Department.department_name, isouter=True)
         .join(Division, Department.division_name == Division.division_name, isouter=True)
-        .join(EmployeeTitle, Employee.title == EmployeeTitle.title, isouter=True)
         .order_by(Employee.employee_no)
         .all()
     )

@@ -1,5 +1,5 @@
 from datetime import date
-from .models import db, Employee, EmployeeTitle, SalaryPayment
+from .models import db, Employee, EmployeeSalary, SalaryPayment
 
 def pay_salaries(payment_date: date = None):
     if payment_date is None:
@@ -9,7 +9,7 @@ def pay_salaries(payment_date: date = None):
 
     for emp in employees:
         # Find the salary for the employee's title
-        title_record = EmployeeTitle.query.filter_by(title=emp.title).first()
+        title_record = EmployeeSalary.query.filter_by(title=emp.title).first()
         if not title_record:
             # Skip employees without a known salary title
             continue
