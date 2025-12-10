@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from datetime import datetime, date
 from .models import db, Employee, Department, Division, EmployeeSalary
 from sqlalchemy.orm import aliased
-from sqlalchemy import func, and_, desc
+from sqlalchemy import func, and_
 
 main_bp = Blueprint('main', __name__)
 
@@ -71,15 +71,12 @@ def human_resources():
             "employment_start_date": emp.employment_start_date,
             "employment_end_date": emp.employment_end_date,
             "is_active": emp.is_active,
-
-           
             "salary": salary.salary if salary else None,
             "salary_start_date": salary.start_date if salary else None,
             "salary_type": salary.type if salary else None  # salary OR hourly
         })
 
     return render_template('human_resources.html', employees=employees)
-
 
 @main_bp.route('/add-employee', methods=['GET', 'POST'])
 def add_employee():
@@ -109,3 +106,59 @@ def add_employee():
 
     departments = Department.query.order_by(Department.department_name).all()
     return render_template('add_employee.html', departments=departments)
+
+
+@main_bp.route('/set-salary', methods=['POST'])
+def set_salary():
+    data = request.get_json()
+    employee_no = data.get('employee_no')
+    new_salary_str = data.get('new_salary')
+    percent_increase_str = data.get('percent_increase')
+
+    if not employee_no:
+        return jsonify({"success": False, "message": "Employee number missing."}), 400
+
+    new_salary = None
+    percent_increase = None
+
+    try:
+        if new_salary_str and new_salary_str.strip() != '':
+            new_salary = float(new_salary_str)
+        if percent_increase_str and percent_increase_str.strip() != '':
+            percent_increase = float(percent_increase_str)
+    except ValueError:
+        return jsonify({"success": False, "message": "Invalid input for salary or percent increase."}), 400
+
+    if new_salary is None and percent_increase is None:
+        return jsonify({"success": False, "message": "Please enter either a new salary or a percent increase."}), 400
+
+    current_salary_record = EmployeeSalary.query.filter_by(employee_no=employee_no, end_date=None).first()
+    if not current_salary_record:
+        return jsonify({"success": False, "message": "Current salary record not found."}), 404
+
+    current_salary = current_salary_record.salary
+
+    if new_salary is None and percent_increase is not None:
+        new_salary = current_salary * (1 + percent_increase / 100)
+
+    if percent_increase is None and new_salary is not None:
+        percent_increase = ((new_salary - current_salary) / current_salary) * 100
+
+    current_salary_record.end_date = date.today()
+    db.session.add(current_salary_record)
+
+    new_salary_record = EmployeeSalary(
+        employee_no=employee_no,
+        salary=new_salary,
+        start_date=date.today(),
+        end_date=None,
+        type=current_salary_record.type
+    )
+    db.session.add(new_salary_record)
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": f"Salary updated successfully for Employee #{employee_no}. New salary: ${new_salary:.2f} ({percent_increase:.2f}% increase)"
+    })

@@ -4,10 +4,8 @@
 <h2>Human Resources - Employees</h2>
 
 <div class="row">
-    <!-- LEFT SIDE: Employee list -->
+    <!-- LEFT SIDE -->
     <div class="col-md-8">
-
-        <!-- Scrollable wrapper -->
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 5px;">
 
             <table id="employeeTable" class="table table-striped">
@@ -43,11 +41,9 @@
             </table>
 
         </div>
-        <!-- End scroll wrapper -->
-
     </div>
 
-    <!-- RIGHT SIDE: Details panel -->
+    <!-- RIGHT SIDE -->
     <div class="col-md-4">
         <h3>Employee Salary Details</h3>
 
@@ -57,22 +53,18 @@
                     <th>Employee No</th>
                     <td id="detail-empno" class="text-end"></td>
                 </tr>
-
                 <tr>
                     <th>Name</th>
                     <td id="detail-name" class="text-end"></td>
                 </tr>
-
                 <tr>
                     <th>Salary Type</th>
                     <td id="detail-salary-type" class="text-end"></td>
                 </tr>
-
                 <tr>
                     <th>Current Salary</th>
                     <td id="detail-current-salary" class="text-end"></td>
                 </tr>
-
                 <tr>
                     <th>New Salary</th>
                     <td class="text-end">
@@ -81,7 +73,6 @@
                                style="width: 130px; text-align: right;">
                     </td>
                 </tr>
-
                 <tr>
                     <th>Percent Increase (%)</th>
                     <td class="text-end">
@@ -92,6 +83,10 @@
                 </tr>
             </tbody>
         </table>
+
+        <!-- NEW BUTTON -->
+        <button id="btn-set-salary" class="btn btn-primary w-100">Set New Salary</button>
+        <div id="salary-msg" class="mt-2"></div>
     </div>
 </div>
 
@@ -154,6 +149,66 @@
             }
         });
 
+        // NEW: SET NEW SALARY BUTTON
+        document.getElementById("btn-set-salary").addEventListener("click", function () {
+
+            const empNo = detailEmpNo.textContent.trim();
+            const newSalary = inputNewSalary.value.trim();
+            const percent = inputPercentIncrease.value.trim();
+
+            if (!empNo) {
+                alert("Please select an employee first.");
+                return;
+            }
+
+            if (!newSalary && !percent) {
+                alert("Please enter a new salary or percent increase.");
+                return;
+            }
+
+            const payload = {
+                employee_no: empNo,
+                new_salary: newSalary,
+                percent_increase: percent
+            };
+
+            fetch("/set-salary", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById("salary-msg").innerHTML =
+                            `<div class="alert alert-success">${data.message}</div>`;
+
+                        // Update table row and salary detail panel with new salary
+                        const newSalaryNum = parseFloat(newSalary);
+                        if (!isNaN(newSalaryNum)) {
+                            // Update data-current-salary on the table row
+                            const row = document.querySelector(`#employeeTable tbody tr[data-employee-no="${empNo}"]`);
+                            if (row) {
+                                row.setAttribute('data-current-salary', newSalaryNum.toFixed(2));
+                            }
+
+                            // Update current salary display on right panel
+                            detailCurrentSalary.textContent = `$${newSalaryNum.toFixed(2)}`;
+                            currentSalary = newSalaryNum; // update currentSalary variable too
+
+                            // Clear input fields
+                            clearInputs();
+                        }
+                    } else {
+                        document.getElementById("salary-msg").innerHTML =
+                            `<div class="alert alert-danger">${data.message}</div>`;
+                    }
+                })
+                .catch(err => {
+                    document.getElementById("salary-msg").innerHTML =
+                        `<div class="alert alert-danger">Error updating salary.</div>`;
+                });
+        });
     });
 </script>
 
