@@ -19,6 +19,27 @@
             background-color: #f1f3f5 !important;
             cursor: pointer;
         }
+
+        /* Fixed widths for salary details table */
+        #salaryDetailsTable th,
+        #salaryDetailsTable td {
+            width: 150px;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Optional: Make salary details table cells aligned right for numeric data */
+        #salaryDetailsTable td {
+            text-align: right;
+        }
+
+        /* Optional: Make first column (labels) left aligned */
+        #salaryDetailsTable th {
+            text-align: left;
+            background-color: #f7f7f7;
+        }
     </style>
 </head>
 
@@ -44,7 +65,7 @@
         </div>
     </div>
 
-    <div class="container body-content">
+    <div class="container body-content" style="margin-top: 70px;">
         {% block content %}{% endblock %}
         <hr />
         <footer>
@@ -58,17 +79,39 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const rows = document.querySelectorAll("table tbody tr");
+            const rows = document.querySelectorAll("#employeeTable tbody tr");
 
             rows.forEach(row => {
                 row.addEventListener("click", () => {
+                    // Remove selection from all rows
                     rows.forEach(r => r.classList.remove("selected-row"));
+                    // Add selection to clicked row
                     row.classList.add("selected-row");
+
+                    // Extract data attributes
+                    const employeeNo = row.dataset.employeeNo || '';
+                    const employeeName = row.dataset.employeeName || '';
+                    const currentSalaryRaw = row.dataset.currentSalary || '0';
+                    const currentSalary = parseFloat(currentSalaryRaw);
+
+                    // Calculate new salary and percent increase
+                    const newSalary = currentSalary * 1.05; // 5% increase example
+                    const percentIncrease = currentSalary > 0 ? ((newSalary - currentSalary) / currentSalary) * 100 : 0;
+
+                    // Populate the salary details panel
+                    document.getElementById("detail-empno").innerText = employeeNo;
+                    document.getElementById("detail-name").innerText = employeeName;
+                    document.getElementById("detail-current-salary").innerText =
+                        currentSalary ? "$" + currentSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
+                    document.getElementById("detail-new-salary").innerText =
+                        newSalary ? "$" + newSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
+                    document.getElementById("detail-percent").innerText =
+                        percentIncrease ? percentIncrease.toFixed(2) + "%" : "";
                 });
             });
         });
     </script>
-    {% block scripts %}{% endblock %}
 
+    {% block scripts %}{% endblock %}
 </body>
 </html>
