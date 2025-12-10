@@ -386,18 +386,102 @@ def seed_db():
 
     salary_records = [
         # employee_no, salary, start_date, end_date, type
+
+        # 1. Alice Johnson – Head of Technology (salary)
         (1, 85000, date(2021, 2, 15), date(2023, 12, 31), 'salary'),
-        (1, 90000, date(2024, 1, 1), None, 'salary'),  # current salary
-    
+        (1, 90000, date(2024, 1, 1), None, 'salary'),
+
+        # 2. Bob Smith – Head of Operations (salary)
         (2, 70000, date(2020, 7, 1), date(2024, 5, 31), 'salary'),
         (2, 75000, date(2024, 6, 1), None, 'salary'),
-    
+
+        # 3. Sarah Lee – Head of HR (salary)
         (3, 75000, date(2019, 11, 12), None, 'salary'),
-    
-        (4, 30, date(2022, 4, 21), None, 'hourly'),  # hourly wage
-    
-        # Add more as needed...
+
+        # 4. Michael Chen – Project Manager (salary)
+        (4, 65000, date(2022, 4, 21), date(2023, 12, 31), 'salary'),
+        (4, 70000, date(2024, 1, 1), None, 'salary'),
+
+        # 5. Emma Davis – Project Manager (salary)
+        (5, 68000, date(2018, 5, 20), None, 'salary'),
+
+        # 6. James Wilson – Recruitment Specialist (hourly)
+        (6, 28, date(2021, 8, 10), None, 'hourly'),
+
+        # 7. Olivia Martinez – HR Training Coordinator (hourly)
+        (7, 26, date(2019, 3, 8), None, 'hourly'),
+
+        # 8. Liam Brown – Compensation Analyst (salary)
+        (8, 64000, date(2020, 1, 25), None, 'salary'),
+
+        # 9. Sophia Anderson – Employee Relations Specialist (salary)
+        (9, 62000, date(2017, 12, 11), None, 'salary'),
+
+        # 10. Noah Thomas – Head of Mechanical Engineering (salary)
+        (10, 95000, date(2016, 6, 30), None, 'salary'),
+
+        # 11. Isabella Taylor – Project Manager (salary)
+        (11, 70000, date(2019, 9, 15), None, 'salary'),
+
+        # 12. Mason Moore – Project Manager (salary)
+        (12, 72000, date(2015, 4, 2), date(2023, 12, 31), 'salary'),
+        (12, 76000, date(2024, 1, 1), None, 'salary'),
+
+        # 13. Mia Jackson – Mechanical Design Engineer (hourly)
+        (13, 32, date(2022, 7, 19), None, 'hourly'),
+
+        # 14. Ethan White – Manufacturing Engineer (salary)
+        (14, 68000, date(2018, 10, 5), None, 'salary'),
+
+        # 15. Amelia Harris – Quality Control Engineer (salary)
+        (15, 66000, date(2020, 11, 3), None, 'salary'),
+
+        # 16. Alexander Martin – Maintenance Engineer (hourly)
+        (16, 27, date(2017, 2, 17), None, 'hourly'),
+
+        # 17. Charlotte Garcia – Head of Network Operations (salary)
+        (17, 88000, date(2021, 5, 27), None, 'salary'),
+
+        # 18. Daniel Martinez – Project Manager (salary)
+        (18, 69000, date(2019, 8, 13), None, 'salary'),
+
+        # 19. Emily Rodriguez – Project Manager (salary)
+        (19, 71000, date(2018, 1, 23), None, 'salary'),
+
+        # 20. Matthew Lewis – Network Security Specialist (hourly)
+        (20, 34, date(2022, 3, 29), None, 'hourly'),
+
+        # 21. Abigail Walker – Network Technician (hourly)
+        (21, 25, date(2020, 9, 10), None, 'hourly'),
+
+        # 22. David Hall – Systems Analyst (salary)
+        (22, 69000, date(2016, 12, 1), None, 'salary'),
+
+        # 23. Elizabeth Allen – Telecommunications Specialist (hourly)
+        (23, 29, date(2017, 7, 7), None, 'hourly'),
+
+        # 24. Joseph Young – Head of Software Engineering (salary)
+        (24, 95000, date(2019, 10, 16), None, 'salary'),
+
+        # 25. Madison King – Project Manager (salary)
+        (25, 72000, date(2021, 6, 14), None, 'salary'),
+
+        # 26. Samuel Wright – Project Manager (salary)
+        (26, 68000, date(2022, 1, 12), None, 'salary'),
+
+        # 27. Ella Scott – Software Developer (hourly)
+        (27, 31, date(2018, 4, 18), None, 'hourly'),
+
+        # 28. Benjamin Green – QA Engineer (salary)
+        (28, 63000, date(2020, 5, 22), None, 'salary'),
+
+        # 29. Avery Adams – Technical Architect (salary)
+        (29, 86000, date(2017, 3, 3), None, 'salary'),
+
+        # 30. Jackson Baker – DevOps Engineer (salary)
+        (30, 84000, date(2019, 11, 29), None, 'salary'),
     ]
+
 
     for emp_no, salary, start, end, sal_type in salary_records:
         emp_salary = EmployeeSalary(

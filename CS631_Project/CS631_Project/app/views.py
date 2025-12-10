@@ -25,7 +25,7 @@ def test_template():
 
 @main_bp.route('/human-resources')
 def human_resources():
-    # Subquery to get the max start_date per employee (latest salary start)
+    # Subquery to get the latest salary record (by start date) for each employee
     latest_salary_subq = (
         db.session.query(
             EmployeeSalary.employee_no,
@@ -34,10 +34,10 @@ def human_resources():
         .group_by(EmployeeSalary.employee_no)
         .subquery()
     )
-    
+
     latest_salary = aliased(EmployeeSalary)
 
-    # Query to join employees with departments, divisions, and their latest salary
+    # Query main HR data
     results = (
         db.session.query(Employee, Department, Division, latest_salary)
         .join(Department, Employee.department_name == Department.department_name, isouter=True)
@@ -51,8 +51,7 @@ def human_resources():
             latest_salary,
             and_(
                 latest_salary.employee_no == latest_salary_subq.c.employee_no,
-                latest_salary.start_date == latest_salary_subq.c.max_start_date,
-                latest_salary.end_date == None  # Only current salaries where end_date IS NULL
+                latest_salary.start_date == latest_salary_subq.c.max_start_date
             ),
             isouter=True
         )
@@ -72,11 +71,15 @@ def human_resources():
             "employment_start_date": emp.employment_start_date,
             "employment_end_date": emp.employment_end_date,
             "is_active": emp.is_active,
+
+           
             "salary": salary.salary if salary else None,
-            "salary_start_date": salary.start_date if salary else None
+            "salary_start_date": salary.start_date if salary else None,
+            "salary_type": salary.type if salary else None  # salary OR hourly
         })
 
     return render_template('human_resources.html', employees=employees)
+
 
 @main_bp.route('/add-employee', methods=['GET', 'POST'])
 def add_employee():

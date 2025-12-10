@@ -6,36 +6,45 @@
 <div class="row">
     <!-- LEFT SIDE: Employee list -->
     <div class="col-md-8">
-        <table id="employeeTable" class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Employee No</th>
-                    <th>Name</th>
-                    <th>Title</th>
-                    <th>Department</th>
-                    <th>Division</th>
-                    <th>Employment Start</th>
-                    <th>Employment End</th>
-                    <th>Is Active</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for emp in employees %}
-                <tr data-employee-no="{{ emp.employee_no }}"
-                    data-employee-name="{{ emp.employee_name }}"
-                    data-current-salary="{{ emp.salary if emp.salary else '' }}">
-                    <td>{{ emp.employee_no }}</td>
-                    <td>{{ emp.employee_name }}</td>
-                    <td>{{ emp.title }}</td>
-                    <td>{{ emp.department_name }}</td>
-                    <td>{{ emp.division_name }}</td>
-                    <td>{{ emp.employment_start_date.strftime('%Y-%m-%d') if emp.employment_start_date else '' }}</td>
-                    <td>{{ emp.employment_end_date.strftime('%Y-%m-%d') if emp.employment_end_date else '' }}</td>
-                    <td>{{ 'Yes' if emp.is_active else 'No' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+        <!-- Scrollable wrapper -->
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 5px;">
+
+            <table id="employeeTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Employee No</th>
+                        <th>Name</th>
+                        <th>Title</th>
+                        <th>Department</th>
+                        <th>Division</th>
+                        <th>Employment Start</th>
+                        <th>Employment End</th>
+                        <th>Is Active</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr data-employee-no="{{ emp.employee_no }}"
+                        data-employee-name="{{ emp.employee_name }}"
+                        data-current-salary="{{ emp.salary if emp.salary else '' }}"
+                        data-salary-type="{{ emp.salary_type if emp.salary_type else '' }}">
+                        <td>{{ emp.employee_no }}</td>
+                        <td>{{ emp.employee_name }}</td>
+                        <td>{{ emp.title }}</td>
+                        <td>{{ emp.department_name }}</td>
+                        <td>{{ emp.division_name }}</td>
+                        <td>{{ emp.employment_start_date.strftime('%Y-%m-%d') if emp.employment_start_date else '' }}</td>
+                        <td>{{ emp.employment_end_date.strftime('%Y-%m-%d') if emp.employment_end_date else '' }}</td>
+                        <td>{{ 'Yes' if emp.is_active else 'No' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+        <!-- End scroll wrapper -->
+
     </div>
 
     <!-- RIGHT SIDE: Details panel -->
@@ -46,26 +55,39 @@
             <tbody>
                 <tr>
                     <th>Employee No</th>
-                    <td id="detail-empno" style="text-align:right;"></td>
+                    <td id="detail-empno" class="text-end"></td>
                 </tr>
+
                 <tr>
                     <th>Name</th>
-                    <td id="detail-name" style="text-align:right;"></td>
+                    <td id="detail-name" class="text-end"></td>
                 </tr>
+
+                <tr>
+                    <th>Salary Type</th>
+                    <td id="detail-salary-type" class="text-end"></td>
+                </tr>
+
                 <tr>
                     <th>Current Salary</th>
-                    <td id="detail-current-salary" style="text-align:right;"></td>
+                    <td id="detail-current-salary" class="text-end"></td>
                 </tr>
+
                 <tr>
                     <th>New Salary</th>
-                    <td style="text-align:right;">
-                        <input type="number" id="input-new-salary" min="0" step="0.01" placeholder="Enter new salary" style="width: 100%; max-width: 180px; text-align: right;" />
+                    <td class="text-end">
+                        <input type="number" id="input-new-salary" min="0" step="0.01"
+                               placeholder="Enter new salary"
+                               style="width: 130px; text-align: right;">
                     </td>
                 </tr>
+
                 <tr>
                     <th>Percent Increase (%)</th>
-                    <td style="text-align:right;">
-                        <input type="number" id="input-percent-increase" min="0" step="0.01" placeholder="Enter percent increase" style="width: 100%; max-width: 180px; text-align: right;" />
+                    <td class="text-end">
+                        <input type="number" id="input-percent-increase" min="0" step="0.01"
+                               placeholder="Enter percent"
+                               style="width: 130px; text-align: right;">
                     </td>
                 </tr>
             </tbody>
@@ -75,10 +97,14 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+
         const rows = document.querySelectorAll('#employeeTable tbody tr');
+
         const detailEmpNo = document.getElementById('detail-empno');
         const detailName = document.getElementById('detail-name');
+        const detailSalaryType = document.getElementById('detail-salary-type');
         const detailCurrentSalary = document.getElementById('detail-current-salary');
+
         const inputNewSalary = document.getElementById('input-new-salary');
         const inputPercentIncrease = document.getElementById('input-percent-increase');
 
@@ -91,15 +117,18 @@
 
         rows.forEach(row => {
             row.addEventListener('click', () => {
+
                 const empNo = row.getAttribute('data-employee-no') || '';
                 const empName = row.getAttribute('data-employee-name') || '';
+                const salaryType = row.getAttribute('data-salary-type') || '';
                 const currentSalaryStr = row.getAttribute('data-current-salary') || '';
 
                 currentSalary = parseFloat(currentSalaryStr) || 0;
 
                 detailEmpNo.textContent = empNo;
                 detailName.textContent = empName;
-                detailCurrentSalary.textContent = currentSalary ? `$${currentSalary.toFixed(2)}` : 'N/A';
+                detailSalaryType.textContent = salaryType ? salaryType.charAt(0).toUpperCase() + salaryType.slice(1) : "N/A";
+                detailCurrentSalary.textContent = currentSalary > 0 ? `$${currentSalary.toFixed(2)}` : 'N/A';
 
                 clearInputs();
             });
@@ -124,6 +153,7 @@
                 inputNewSalary.value = '';
             }
         });
+
     });
 </script>
 
