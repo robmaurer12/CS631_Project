@@ -4,10 +4,8 @@
 <h2>Human Resources - Employees</h2>
 
 <div class="row">
-    <!-- LEFT SIDE -->
     <div class="col-md-8">
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 5px;">
-
             <table id="employeeTable" class="table table-striped">
                 <thead>
                     <tr>
@@ -39,32 +37,17 @@
                     {% endfor %}
                 </tbody>
             </table>
-
         </div>
     </div>
 
-    <!-- RIGHT SIDE -->
     <div class="col-md-4">
         <h3>Employee Salary Details</h3>
-
         <table id="salaryDetailsTable" class="table table-bordered">
             <tbody>
-                <tr>
-                    <th>Employee No</th>
-                    <td id="detail-empno" class="text-end"></td>
-                </tr>
-                <tr>
-                    <th>Name</th>
-                    <td id="detail-name" class="text-end"></td>
-                </tr>
-                <tr>
-                    <th>Salary Type</th>
-                    <td id="detail-salary-type" class="text-end"></td>
-                </tr>
-                <tr>
-                    <th>Current Salary</th>
-                    <td id="detail-current-salary" class="text-end"></td>
-                </tr>
+                <tr><th>Employee No</th><td id="detail-empno" class="text-end"></td></tr>
+                <tr><th>Name</th><td id="detail-name" class="text-end"></td></tr>
+                <tr><th>Salary Type</th><td id="detail-salary-type" class="text-end"></td></tr>
+                <tr><th>Current Salary</th><td id="detail-current-salary" class="text-end"></td></tr>
                 <tr>
                     <th>New Salary</th>
                     <td class="text-end">
@@ -84,325 +67,18 @@
             </tbody>
         </table>
 
-        <!-- Buttons side-by-side -->
         <div class="d-flex mt-2 gap-2">
             <button id="btn-set-salary" class="btn btn-primary flex-grow-1">Set New Salary</button>
             <button id="btn-view-history" class="btn btn-secondary flex-grow-1">View Salary History</button>
+            <button id="btn-set-status" class="btn btn-secondary flex-grow-1">Set Status</button>
         </div>
         <div id="salary-msg" class="mt-2"></div>
     </div>
 </div>
 
-<!-- Salary History Modal -->
-<div id="salaryHistoryModal" class="modal" tabindex="-1" role="dialog"
-     style="
-            display: none;
-            background: rgba(0,0,0,0.5);
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 1050;
-            justify-content: center;
-            align-items: center;
-            ">
-    <div class="modal-dialog" role="document"
-         style="max-width: 600px;
-                margin: 0;
-                background: #fff;
-                padding: 20px;
-                border-radius: 5px;
-                position: relative;
+{% include "Salary_history_modal.html" %}
+{% include "status_modal.html" %}
 
-                /* Shift left by 30px and down by 20px */
-                transform: translate(-250px, 150px);
-                ">
-        <h4>Salary History</h4>
-        <button id="modal-close-btn"
-                style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer;">
-            &times;
-        </button>
-        <div class="form-group mb-3">
-            <label for="yearSelect">Select Year:</label>
-            <select id="yearSelect" class="form-control"></select>
-        </div>
-        <button id="btn-get-data" class="btn btn-primary mb-3">Get Data</button>
-
-        <div id="historyTableContainer" style="max-height:300px; overflow-y:auto; display:none;">
-            <table class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Month</th>
-                        <th>Salary</th>
-                        <th>Fed Tax (10%)</th>
-                        <th>State Tax (5%)</th>
-                        <th>Other Taxes (3%)</th>
-                        <th>Take Home</th>
-                    </tr>
-                </thead>
-                <tbody id="historyTableBody"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-
-        const rows = document.querySelectorAll('#employeeTable tbody tr');
-
-        const detailEmpNo = document.getElementById('detail-empno');
-        const detailName = document.getElementById('detail-name');
-        const detailSalaryType = document.getElementById('detail-salary-type');
-        const detailCurrentSalary = document.getElementById('detail-current-salary');
-
-        const inputNewSalary = document.getElementById('input-new-salary');
-        const inputPercentIncrease = document.getElementById('input-percent-increase');
-
-        let currentSalary = 0;
-
-        function clearInputs() {
-            inputNewSalary.value = '';
-            inputPercentIncrease.value = '';
-        }
-
-        rows.forEach(row => {
-            row.addEventListener('click', () => {
-
-                const empNo = row.getAttribute('data-employee-no') || '';
-                const empName = row.getAttribute('data-employee-name') || '';
-                const salaryType = row.getAttribute('data-salary-type') || '';
-                const currentSalaryStr = row.getAttribute('data-current-salary') || '';
-
-                currentSalary = parseFloat(currentSalaryStr) || 0;
-
-                detailEmpNo.textContent = empNo;
-                detailName.textContent = empName;
-                detailSalaryType.textContent = salaryType ? salaryType.charAt(0).toUpperCase() + salaryType.slice(1) : "N/A";
-                detailCurrentSalary.textContent = currentSalary > 0 ? `$${currentSalary.toFixed(2)}` : 'N/A';
-
-                clearInputs();
-            });
-        });
-
-        inputNewSalary.addEventListener('input', () => {
-            const newSalary = parseFloat(inputNewSalary.value);
-            if (!isNaN(newSalary) && currentSalary > 0) {
-                const percentIncrease = ((newSalary - currentSalary) / currentSalary) * 100;
-                inputPercentIncrease.value = percentIncrease.toFixed(2);
-            } else {
-                inputPercentIncrease.value = '';
-            }
-        });
-
-        inputPercentIncrease.addEventListener('input', () => {
-            const percent = parseFloat(inputPercentIncrease.value);
-            if (!isNaN(percent) && currentSalary > 0) {
-                const newSalary = currentSalary * (1 + (percent / 100));
-                inputNewSalary.value = newSalary.toFixed(2);
-            } else {
-                inputNewSalary.value = '';
-            }
-        });
-
-        // SET NEW SALARY BUTTON
-        document.getElementById("btn-set-salary").addEventListener("click", function () {
-
-            const empNo = detailEmpNo.textContent.trim();
-            const newSalary = inputNewSalary.value.trim();
-            const percent = inputPercentIncrease.value.trim();
-
-            if (!empNo) {
-                alert("Please select an employee first.");
-                return;
-            }
-
-            if (!newSalary && !percent) {
-                alert("Please enter a new salary or percent increase.");
-                return;
-            }
-
-            const payload = {
-                employee_no: empNo,
-                new_salary: newSalary,
-                percent_increase: percent
-            };
-
-            fetch("/set-salary", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            })
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("salary-msg").innerHTML =
-                        `<div class="alert alert-success">${data.message}</div>`;
-                })
-                .catch(err => {
-                    document.getElementById("salary-msg").innerHTML =
-                        `<div class="alert alert-danger">Error updating salary.</div>`;
-                });
-        });
-
-        // SALARY HISTORY MODAL LOGIC
-        const modal = document.getElementById('salaryHistoryModal');
-        const yearSelect = document.getElementById('yearSelect');
-        const btnViewHistory = document.getElementById('btn-view-history');
-        const btnGetData = document.getElementById('btn-get-data');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        const historyTableContainer = document.getElementById('historyTableContainer');
-        const historyTableBody = document.getElementById('historyTableBody');
-
-        btnViewHistory.addEventListener('click', () => {
-            const empNo = detailEmpNo.textContent.trim();
-            if (!empNo) {
-                alert("Please select an employee first.");
-                return;
-            }
-
-            // Clear previous modal content
-            historyTableBody.innerHTML = '';
-            historyTableContainer.style.display = 'none';
-            yearSelect.innerHTML = '';
-
-            // Get employee row to find employment dates
-            const row = document.querySelector(`#employeeTable tbody tr[data-employee-no="${empNo}"]`);
-            if (!row) return;
-
-            const startDateStr = row.querySelector('td:nth-child(6)').textContent.trim();
-            const endDateStr = row.querySelector('td:nth-child(7)').textContent.trim();
-
-            if (!startDateStr) {
-                alert('Employment start date not found.');
-                return;
-            }
-
-            const startYear = new Date(startDateStr).getFullYear();
-            const endYear = endDateStr ? new Date(endDateStr).getFullYear() : new Date().getFullYear();
-
-            for (let y = startYear; y <= endYear; y++) {
-                const option = document.createElement('option');
-                option.value = y;
-                option.textContent = y;
-                yearSelect.appendChild(option);
-            }
-
-            modal.style.display = 'block';
-        });
-
-        modalCloseBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-
-        // Dummy salary history data generator (replace with actual fetch later)
-        function generateDummySalaryHistory(year, salary) {
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            let data = [];
-            for (let i = 0; i < 12; i++) {
-                const fedTax = salary * 0.10;
-                const stateTax = salary * 0.05;
-                const otherTax = salary * 0.03;
-                const takeHome = salary - fedTax - stateTax - otherTax;
-                data.push({
-                    month: months[i],
-                    salary: salary.toFixed(2),
-                    fedTax: fedTax.toFixed(2),
-                    stateTax: stateTax.toFixed(2),
-                    otherTax: otherTax.toFixed(2),
-                    takeHome: takeHome.toFixed(2)
-                });
-            }
-            return data;
-        }
-
-        btnGetData.addEventListener('click', async () => {
-            const selectedYear = yearSelect.value;
-            if (!selectedYear) {
-                alert('Please select a year.');
-                return;
-            }
-
-            const empNo = detailEmpNo.textContent.trim();
-            if (!empNo) {
-                alert('Please select an employee first.');
-                return;
-            }
-
-            try {
-                // Fetch salary history from backend API
-                const response = await fetch(`/salary-history/${empNo}/${selectedYear}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch salary history');
-                }
-                const data = await response.json();
-
-                // Clear previous data and footer
-                historyTableBody.innerHTML = '';
-                // Remove existing footer if any
-                const existingFooter = historyTableContainer.querySelector('tfoot');
-                if (existingFooter) existingFooter.remove();
-
-                // Initialize totals
-                let totalSalary = 0;
-                let totalFedTax = 0;
-                let totalStateTax = 0;
-                let totalOtherTaxes = 0;
-                let totalTakeHome = 0;
-
-                data.monthly_salary_history.forEach(item => {
-                    const monthName = new Date(data.year, item.month - 1).toLocaleString('default', { month: 'long' });
-
-                    totalSalary += item.salary;
-                    totalFedTax += item.federal_tax;
-                    totalStateTax += item.state_tax;
-                    totalOtherTaxes += item.other_taxes;
-                    totalTakeHome += item.take_home;
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                <td>${monthName}</td>
-                <td>$${item.salary.toFixed(2)}</td>
-                <td>$${item.federal_tax.toFixed(2)}</td>
-                <td>$${item.state_tax.toFixed(2)}</td>
-                <td>$${item.other_taxes.toFixed(2)}</td>
-                <td>$${item.take_home.toFixed(2)}</td>
-            `;
-                    historyTableBody.appendChild(tr);
-                });
-
-                // Create footer row for totals
-                const tfoot = document.createElement('tfoot');
-                tfoot.innerHTML = `
-            <tr style="font-weight: bold; background-color: #f8f9fa;">
-                <td>Total</td>
-                <td>$${totalSalary.toFixed(2)}</td>
-                <td>$${totalFedTax.toFixed(2)}</td>
-                <td>$${totalStateTax.toFixed(2)}</td>
-                <td>$${totalOtherTaxes.toFixed(2)}</td>
-                <td>$${totalTakeHome.toFixed(2)}</td>
-            </tr>
-        `;
-
-                historyTableContainer.querySelector('table').appendChild(tfoot);
-
-                historyTableContainer.style.display = 'block';
-
-            } catch (error) {
-                alert('Error loading salary data: ' + error.message);
-            }
-        });
-
-
-    });
-</script>
+<script src="{{ url_for('static', filename='scripts/human_resources.js') }}"></script>
 
 {% endblock %}

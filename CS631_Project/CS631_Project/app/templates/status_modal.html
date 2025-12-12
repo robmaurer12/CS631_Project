@@ -1,0 +1,33 @@
+<div id="statusModal" class="modal" tabindex="-1" role="dialog"
+     style="
+            display: none;
+            background: rgba(0,0,0,0.5);
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1050;
+            justify-content: center;
+            align-items: center;
+            ">
+    <div class="modal-dialog" role="document"
+         style="
+                max-width: 400px;
+                margin: 0;
+                background: #fff;
+                padding: 20px;
+                border-radius: 5px;
+                position: relative;
+                transform: translate(-700px, 0px);
+                ">
+        <h4>Set Employee Status</h4>
+        <button id="statusModalCloseBtn"
+                style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer;">
+            &times;
+        </button>
+        <p>Please choose the new status for the employee:</p>
+        <div class="d-flex justify-content-around mt-3">
+            <button id="btnSetActive" class="btn btn-success">Set Active</button>
+            <button id="btnSetInactive" class="btn btn-danger">Set Inactive</button>
+        </div>
+    </div>
+</div>
