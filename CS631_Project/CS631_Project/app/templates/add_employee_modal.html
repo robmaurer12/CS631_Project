@@ -1,0 +1,81 @@
+<div id="addEmployeeModal" class="modal"
+     style="
+        display: none;
+        background: rgba(0,0,0,0.5);
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+     ">
+
+    <div class="modal-dialog"
+         style="
+            max-width: 600px;
+            margin: 0;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            position: relative;
+            transform: translate(-650px, 0px);
+         ">
+
+        <h4>Add Employee</h4>
+
+        <button id="add-employee-close-btn"
+                style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer;">
+            &times;
+        </button>
+
+        <div class="form-group mb-3">
+            <label for="add-emp-name">Name</label>
+            <input id="add-emp-name" type="text" class="form-control" placeholder="Employee name">
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="add-emp-title">Title</label>
+            <input id="add-emp-title" type="text" class="form-control" placeholder="Job title">
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="add-emp-department">Department</label>
+            <select id="add-emp-department" class="form-control">
+                <option value="">Select department</option>
+                <option value="Human Resources">Human Resources</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Network Operations">Network Operations</option>
+                <option value="Software Engineering">Software Engineering</option>
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="add-salary-type">Salary Type</label>
+            <select id="add-salary-type" class="form-control">
+                <option value="">Select salary type</option>
+                <option value="hourly">Hourly</option>
+                <option value="salary">Salary</option>
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="add-salary-amount">Salary</label>
+            <input id="add-salary-amount"
+                   type="number"
+                   min="0"
+                   step="0.01"
+                   class="form-control"
+                   placeholder="Enter salary amount">
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-secondary" id="add-employee-cancel">
+                Cancel
+            </button>
+            <button class="btn btn-primary" id="add-employee-save">
+                Add Employee
+            </button>
+        </div>
+
+    </div>
+</div>

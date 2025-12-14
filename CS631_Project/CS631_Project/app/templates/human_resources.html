@@ -1,7 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2>Human Resources - Employees</h2>
+<!--<h2>Human Resources - Employees</h2>-->
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Human Resources - Employees</h2>
+    <div class="d-flex gap-2">
+        <button id="btn-add-employee" class="btn btn-success">
+            Add Employee
+        </button>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-8">
@@ -76,6 +84,7 @@
     </div>
 </div>
 
+{% include "add_employee_modal.html" %}
 {% include "Salary_history_modal.html" %}
 {% include "status_modal.html" %}
 

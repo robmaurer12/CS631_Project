@@ -5,6 +5,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy import func, and_, or_
 from .models import db, Employee, Department, Division, EmployeeSalary
 from .human_res_service import get_employees_with_salary
+import random
 
 main_bp = Blueprint('main', __name__)
 
@@ -126,3 +127,59 @@ def salary_history(employee_no, year):
         "year": year,
         "monthly_salary_history": monthly_data
     })
+
+@main_bp.route("/add-employee", methods=["POST"])
+def add_employee():
+    data = request.get_json()
+
+    name = data.get("name")
+    title = data.get("title")
+    department_name = data.get("department_name")
+    salary_type = data.get("salary_type")
+    salary = data.get("salary")
+
+    if not all([name, title, department_name, salary_type, salary]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    today = date.today()
+
+    #  Get next employee number
+    max_emp_no = db.session.query(func.max(Employee.employee_no)).scalar() or 0
+    next_emp_no = max_emp_no + 1
+
+    # Generate random phone number
+    phone = f"555-{random.randint(100,999)}-{random.randint(1000,9999)}"
+
+    try:
+        #  Insert employee
+        new_employee = Employee(
+            employee_no=next_emp_no,
+            employee_name=name,
+            phone_number=phone,
+            title=title,
+            department_name=department_name,
+            employment_start_date=today,
+            employment_end_date=None,
+            is_active=True
+        )
+
+        db.session.add(new_employee)
+        db.session.flush()  # ensures employee_no is available
+
+        # Insert salary
+        new_salary = EmployeeSalary(
+            employee_no=next_emp_no,
+            salary=float(salary),
+            type=salary_type,
+            start_date=today,
+            end_date=None
+        )
+
+        db.session.add(new_salary)
+        db.session.commit()
+
+        return jsonify({"message": "Employee added successfully"})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

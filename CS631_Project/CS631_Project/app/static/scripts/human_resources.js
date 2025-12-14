@@ -1,5 +1,87 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    // ADD EMPLOYEE MODAL LOGIC
+    const addEmployeeBtn = document.getElementById('btn-add-employee');
+    const addEmployeeModal = document.getElementById('addEmployeeModal');
+    const addEmployeeCloseBtn = document.getElementById('add-employee-close-btn');
+    const addEmployeeCancel = document.getElementById('add-employee-cancel');
+
+    if (addEmployeeCancel) {
+        addEmployeeCancel.addEventListener('click', () => {
+            document.getElementById('addEmployeeModal').style.display = 'none';
+        });
+    }
+    if (addEmployeeBtn && addEmployeeModal) {
+        addEmployeeBtn.addEventListener('click', () => {
+            addEmployeeModal.style.display = 'flex';
+        });
+    }
+
+    if (addEmployeeCloseBtn) {
+        addEmployeeCloseBtn.addEventListener('click', () => {
+            addEmployeeModal.style.display = 'none';
+        });
+    }
+
+    window.addEventListener('click', e => {
+        if (e.target === addEmployeeModal) {
+            addEmployeeModal.style.display = 'none';
+        }
+    });
+
+    // SAVE EMPLOYEE
+    const saveEmployeeBtn = document.getElementById('add-employee-save');
+
+    if (saveEmployeeBtn) {
+        saveEmployeeBtn.addEventListener('click', async () => {
+
+            const name = document.getElementById('add-emp-name').value.trim();
+            const title = document.getElementById('add-emp-title').value.trim();
+            const departmentName = document.getElementById('add-emp-department').value; // renamed
+            const salaryType = document.getElementById('add-salary-type').value;
+            const salary = document.getElementById('add-salary-amount').value;
+
+            if (!name || !title || !departmentName || !salaryType || !salary) {
+                return alert("Please fill out all fields.");
+            }
+
+            const payload = {
+                name,
+                title,
+                department_name: departmentName,  // send department_name as string
+                salary_type: salaryType,
+                salary: salary
+            };
+
+            try {
+                const response = await fetch("/add-employee", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to add employee");
+                }
+
+                // Close modal
+                document.getElementById('addEmployeeModal').style.display = 'none';
+
+                alert("Employee added successfully!");
+
+                // Optional: refresh page or table later
+                location.reload();
+
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    }
+
+
+
     const rows = document.querySelectorAll('#employeeTable tbody tr');
     const detailEmpNo = document.getElementById('detail-empno');
     const detailName = document.getElementById('detail-name');
@@ -94,68 +176,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     `<div class="alert alert-danger">Error updating salary.</div>`;
             });
     });
-
-    //set active/inactive
-    //const btnSetStatus = document.getElementById('btn-set-status');
-    //const statusModal = document.getElementById('statusModal');
-    //const statusModalCloseBtn = document.getElementById('statusModalCloseBtn');
-    //const btnSetActive = document.getElementById('btnSetActive');
-    //const btnSetInactive = document.getElementById('btnSetInactive');
-    //const btnCancelStatus = document.getElementById('btnCancelStatus');
-
-    //btnSetStatus.addEventListener('click', () => {
-    //    const empNo = detailEmpNo.textContent.trim();
-    //    if (!empNo) return alert("Please select an employee first.");
-    //    statusModal.style.display = 'flex'; // show the modal
-    //});
-
-    //btnSetActive.addEventListener('click', () => {
-    //    setEmployeeStatus('active');
-    //    statusModal.style.display = 'none';
-    //});
-
-    //btnSetInactive.addEventListener('click', () => {
-    //    setEmployeeStatus('inactive');
-    //    statusModal.style.display = 'none';
-    //});
-
-    ////btnCancelStatus.addEventListener('click', () => {
-    ////    statusModal.style.display = 'none';
-    ////});
-
-    ////statusModalCloseBtn.addEventListener('click', () => {
-    ////    statusModal.style.display = 'none';
-    ////});
-
-    //statusModal.addEventListener('click', (e) => {
-    //    // Only close if clicked exactly on the overlay (outside modal dialog)
-    //    if (e.target === statusModal) {
-    //        statusModal.style.display = 'none';
-    //    }
-    //});
-
-    //// Close modal if clicked outside modal content
-    //statusModal.addEventListener('click', e => {
-    //    if (e.target === statusModal) statusModal.style.display = 'none';
-    //});
-
-    //function setEmployeeStatus(status) {
-    //    const empNo = detailEmpNo.textContent.trim();
-    //    if (!empNo) return alert("Please select an employee first.");
-
-    //    // Example POST request to update status (adjust URL & payload as needed)
-    //    fetch('/set-status', {
-    //        method: 'POST',
-    //        headers: { 'Content-Type': 'application/json' },
-    //        body: JSON.stringify({ employee_no: empNo, status })
-    //    })
-    //        .then(res => res.json())
-    //        .then(data => {
-    //            alert(`Status updated to ${status}.`);
-    //            // Optionally update UI here, e.g. highlight row or update status text
-    //        })
-    //        .catch(err => alert('Error updating status.'));
-    //}
 
     // SALARY HISTORY MODAL LOGIC
     const modal = document.getElementById('salaryHistoryModal');
