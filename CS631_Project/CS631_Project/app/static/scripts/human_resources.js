@@ -43,6 +43,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedRow = document.querySelector(`#employeeTable tbody tr[data-employee-no="${empNo}"]`);
             if (selectedRow) {
                 selectedRow.querySelector('td:nth-child(8)').textContent = newStatus ? 'Yes' : 'No';
+
+                // Update Employment End Date column (7th column)
+                const endDateCell = selectedRow.querySelector('td:nth-child(7)');
+                if (endDateCell) {
+                    endDateCell.textContent = data.employment_end_date || '';
+                }
             }
 
             alert('Employee status updated successfully.');

@@ -37,7 +37,14 @@
                         <td>{{ emp.employee_name }}</td>
                         <td>{{ emp.title }}</td>
                         <td>{{ emp.department_name }}</td>
-                        <td>{{ emp.division_name }}</td>
+
+                        <td>
+                            {% if not emp.department_name and emp.title.startswith('Head of ') %}
+                            {{ emp.title[8:] }} {# Extract substring after 'Head of ' #}
+                            {% else %}
+                            {{ emp.division_name }}
+                            {% endif %}
+                        </td>
                         <td>{{ emp.employment_start_date.strftime('%Y-%m-%d') if emp.employment_start_date else '' }}</td>
                         <td>{{ emp.employment_end_date.strftime('%Y-%m-%d') if emp.employment_end_date else '' }}</td>
                         <td>{{ 'Yes' if emp.is_active else 'No' }}</td>

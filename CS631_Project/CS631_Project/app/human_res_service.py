@@ -50,7 +50,6 @@ def get_employees_with_salary():
             ),
             isouter=True
         )
-        .filter(Employee.is_active == True)
         .order_by(Employee.employee_no)
         .all()
     )

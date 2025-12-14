@@ -207,7 +207,11 @@ def set_status():
             employee.employment_end_date = None
 
         db.session.commit()
-        return jsonify({"message": "Status updated successfully", "is_active": employee.is_active})
+        return jsonify({
+            "message": "Status updated successfully", 
+            "is_active": employee.is_active,
+            "employment_end_date": employee.employment_end_date.isoformat() if employee.employment_end_date else ""
+        })
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
