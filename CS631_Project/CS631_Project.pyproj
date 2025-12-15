@@ -70,11 +70,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CS631_Project\app\static\scripts\human_resources.js" />
+    <Content Include="CS631_Project\app\static\scripts\project_manager.js" />
     <Content Include="CS631_Project\app\templates\add_employee.html" />
     <Content Include="CS631_Project\app\templates\add_employee_modal.html">
       <SubType>Code</SubType>
     </Content>
     <Content Include="CS631_Project\app\templates\human_resources.html" />
+    <Content Include="CS631_Project\app\templates\project_manager.html" />
     <Content Include="CS631_Project\app\templates\Salary_history_modal.html" />
     <Content Include="CS631_Project\app\templates\status_modal.html">
       <SubType>Code</SubType>

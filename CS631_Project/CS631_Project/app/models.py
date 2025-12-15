@@ -22,13 +22,13 @@ class Building(db.Model):
     year_bought = db.Column(db.Integer)
     cost = db.Column(db.Float)
 
-class Project(db.Model):
-    __tablename__ = 'projects'
-    project_number = db.Column(db.Integer, primary_key=True)
-    budget = db.Column(db.Float)
-    date_started = db.Column(db.Date)
-    date_ended = db.Column(db.Date)
-    manager_id = db.Column(db.Integer, db.ForeignKey('employees.employee_no'))
+# class Project(db.Model):
+#     __tablename__ = 'projects'
+#     project_number = db.Column(db.Integer, primary_key=True)
+#     budget = db.Column(db.Float)
+#     date_started = db.Column(db.Date)
+#     date_ended = db.Column(db.Date)
+#     manager_id = db.Column(db.Integer, db.ForeignKey('employees.employee_no'))
 
 class Employee(db.Model):
     __tablename__ = 'employees'
@@ -43,6 +43,58 @@ class Employee(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     employment_start_date = db.Column(db.Date, nullable=True, default=date.today)
     employment_end_date = db.Column(db.Date, nullable=True)
+    managed_projects = db.relationship("Project", back_populates="manager")
+    projects = db.relationship("ProjectTeam", back_populates="employee")
+    def __repr__(self):
+        return f"<Employee {self.name}>"
+
+class ProjectTeam(db.Model):
+    __tablename__ = "project_team"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.project_number", ondelete="CASCADE"))
+    employee_id = db.Column(db.Integer, db.ForeignKey("employees.employee_no", ondelete="CASCADE"))
+
+    project = db.relationship("Project", back_populates="team")
+    employee = db.relationship("Employee", back_populates="projects")
+
+    __table_args__ = (
+        db.UniqueConstraint("project_id", "employee_id", name="uq_project_employee"),
+    )
+
+class Milestone(db.Model):
+    __tablename__ = "milestones"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.project_number", ondelete="CASCADE"))
+    project = db.relationship("Project", back_populates="milestones")
+
+    title = db.Column(db.String(150))
+    description = db.Column(db.Text)
+    status = db.Column(db.String(20))   # No choices enforcement at DB level
+    due_date = db.Column(db.Date)
+
+    def __repr__(self):
+        return f"<Milestone {self.title}>"
+
+class WorkLog(db.Model):
+    __tablename__ = "work_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.project_number", ondelete="CASCADE"))
+    employee_id = db.Column(db.Integer, db.ForeignKey("employees.employee_no", ondelete="CASCADE"))
+
+    project = db.relationship("Project", back_populates="worklogs")
+    employee = db.relationship("Employee")
+
+    hours_worked = db.Column(db.Numeric(6, 2), nullable=False)
+    work_date = db.Column(db.Date, server_default=db.func.current_date())
+
+    def __repr__(self):
+        return f"<WorkLog {self.hours_worked}h>"
 
 class EmployeeProject(db.Model):
     __tablename__ = 'employee_projects'
@@ -96,3 +148,42 @@ class SalaryPayment(db.Model):
 
     # Relationship for easy access to employee from salary payment
     employee = db.relationship('Employee', backref=db.backref('salary_payments', lazy=True))
+
+class Project(db.Model):
+    __tablename__ = 'projects'
+    name = db.Column(db.String(150))
+    description = db.Column(db.Text)
+    project_number = db.Column(db.Integer, primary_key=True)
+    budget = db.Column(db.Float)
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    manager_id = db.Column(db.Integer, db.ForeignKey('employees.employee_no'))
+    manager = db.relationship("Employee", back_populates="managed_projects")
+    worklogs = db.relationship("WorkLog", back_populates="project", cascade="all, delete-orphan")
+    # Many-to-many using association table model
+    team = db.relationship(
+        "ProjectTeam",
+        back_populates="project",
+        cascade="all, delete"
+    )
+
+    milestones = db.relationship(
+        "Milestone",
+        back_populates="project",
+        cascade="all, delete"
+    )
+    @property
+    def milestones_json(self):
+       return [
+           {
+               "title": m.title,
+               "description": m.description,
+               "status": m.status,
+               "due_date": m.due_date.strftime("%Y-%m-%d") if m.due_date else ""
+           }
+           for m in self.milestones
+       ]
+    def __repr__(self):
+        return f"<Project {self.name}>"
+
+

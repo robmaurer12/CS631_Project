@@ -1,13 +1,174 @@
 from flask import Blueprint, render_template, request, jsonify
 from datetime import datetime, date
 from calendar import monthrange
-from sqlalchemy.orm import aliased
-from sqlalchemy import func, and_, or_
-from .models import db, Employee, Department, Division, EmployeeSalary
 from .human_res_service import get_employees_with_salary
 import random
+from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy import func, and_, or_,text
+from .models import db, Employee, Department, Division, EmployeeSalary, Project, ProjectTeam, WorkLog, Milestone
 
 main_bp = Blueprint('main', __name__)
+
+@main_bp.route("/project-manager")
+def list_projects():
+    projects = Project.query.all()
+    projects = Project.query.options(
+        joinedload(Project.milestones),
+        joinedload(Project.team).joinedload(ProjectTeam.employee),
+        joinedload(Project.worklogs)
+    ).all()
+    for p in projects:
+        p.worklogs_json = [
+            {"id": w.id, "employee": w.employee.employee_name, "hours": float(w.hours_worked), "date": w.work_date.strftime("%Y-%m-%d")}
+            for w in p.worklogs
+        ]
+    return render_template("project_manager.html", projects=projects)
+@main_bp.route("/projects/create", methods=["POST"])
+def create_project():
+    data = request.get_json()
+    project_number = data.get('new_project_id')
+    if not project_number:
+        return jsonify({"message": "Project ID is required."}), 400
+    try:
+        project_number = int(project_number)
+    except ValueError:
+        return jsonify({"message": "Project ID must be a number."}), 400
+    if not data:
+        return jsonify({"message": "No input received."}), 400
+
+    name = data.get("name")
+    description = data.get("description")
+    manager_id = data.get("manager_id")
+    budget = data.get("budget")
+    start_date = data.get("start_date")
+    end_date = data.get("end_date")
+    team_ids = data.get("team", [])
+
+    if not name:
+        return jsonify({"message": "Project name is required."}), 400
+
+    project = Project(
+        project_number=project_number,
+        name=name,
+        description=description,
+        manager_id=manager_id if manager_id else None,
+        budget=budget if budget else None,
+        start_date=datetime.strptime(start_date, "%Y-%m-%d") if start_date else None,
+        end_date=datetime.strptime(end_date, "%Y-%m-%d") if end_date else None,
+    )
+
+    db.session.add(project)
+    db.session.commit()
+
+    
+    for emp_id in team_ids:
+        db.session.add(ProjectTeam(project_id=project.project_number, employee_id=emp_id))
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Project created successfully.",
+        "project_id": project.project_number
+    }), 201
+@main_bp.route("/projects/<int:project_id>")
+def project_detail(project_id):
+    project = Project.query.get_or_404(project_id)
+    return render_template("project_detail.html", project=project)
+@main_bp.route("/projects/<int:project_id>/update", methods=["POST"])
+def update_project(project_id):
+    data = request.get_json()
+    project = Project.query.get_or_404(project_id)
+    new_project_id = data.get("new_project_id")
+    if not data:
+        return jsonify({"message": "No data received."}), 400
+    if new_project_id and int(new_project_id) != project.project_number:
+        if Project.query.get(new_project_id):
+            return jsonify({"message": "Project ID already exists."}), 400
+
+        ProjectTeam.query.filter_by(project_id=project.project_number)\
+            .update({"project_id": new_project_id})
+
+        WorkLog.query.filter_by(project_id=project.project_number)\
+            .update({"project_id": new_project_id})
+
+        Milestone.query.filter_by(project_id=project.project_number)\
+            .update({"project_id": new_project_id})
+
+        project.project_number = new_project_id
+
+    project.name = data.get("name", project.name)
+    project.description = data.get("description", project.description)
+    project.manager_id = data.get("manager_id", project.manager_id)
+    project.budget = data.get("budget", project.budget)
+
+    sd = data.get("start_date")
+    ed = data.get("end_date")
+    project.start_date = datetime.strptime(sd, "%Y-%m-%d") if sd else project.start_date
+    project.end_date = datetime.strptime(ed, "%Y-%m-%d") if ed else project.end_date
+
+    
+    team_ids = data.get("team")
+
+    if team_ids is not None:
+        ProjectTeam.query.filter_by(project_id=project_id).delete()
+        for emp_id in team_ids:
+            db.session.add(ProjectTeam(project_id=project_id, employee_id=emp_id))
+
+    db.session.commit()
+
+    return jsonify({"message": "Project updated successfully."}), 200
+@main_bp.route("/projects/<int:project_id>/delete", methods=["POST"])
+def delete_project(project_id):
+    project = Project.query.get_or_404(project_id)
+    ProjectTeam.query.filter_by(project_id=project.project_number).delete()
+    db.session.execute(
+        text("DELETE FROM employee_projects WHERE project_number = :pnum"),
+        {"pnum": project.project_number}
+    )
+    WorkLog.query.filter_by(project_id=project.project_number).delete()
+    Milestone.query.filter_by(project_id=project.project_number).delete()
+
+    db.session.delete(project)
+    db.session.commit()
+    return jsonify({"message": "Project deleted."}), 200
+@main_bp.route("/worklogs/create", methods=["POST"])
+def create_worklog():
+    data = request.get_json()
+
+    project_id = data.get("project_id")
+    employee_name = data.get("employee")
+    hours = data.get("hours")
+
+    if not project_id or not employee_name or hours is None:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    employee = Employee.query.filter_by(employee_name=employee_name).first()
+    if not employee:
+        return jsonify({"error": f"Employee '{employee_name}' not found"}), 404
+
+    # Create worklog
+    worklog = WorkLog(
+        project_id=project_id,
+        employee_id=employee.employee_no,  
+        hours_worked=hours,
+        work_date=datetime.utcnow()
+    )
+
+    db.session.add(worklog)
+    db.session.commit()
+
+    return jsonify({
+        "id": worklog.id,
+        "employee": employee.employee_name,
+        "hours": float(worklog.hours_worked)
+    }), 200
+@main_bp.route("/worklogs/<int:worklog_id>/delete", methods=["POST"])
+def delete_worklog(worklog_id):
+    worklog = WorkLog.query.get_or_404(worklog_id)
+    employee_name = worklog.employee.employee_name
+    db.session.delete(worklog)
+    db.session.commit()
+    return jsonify({"message": f"Worklog for {worklog.employee.employee_name} deleted."}), 200
 
 @main_bp.route('/')
 @main_bp.route('/home')
@@ -26,6 +187,11 @@ def test_template(): return "<h1>Test route works!</h1>"
 def human_resources():
     employees = get_employees_with_salary()
     return render_template('human_resources.html', employees=employees)
+
+@main_bp.route('/project-manager')
+def project_manager():
+    employees = get_employees_with_salary()
+    return render_template('project_manager.html', employees=employees)
 
 @main_bp.route('/set-salary', methods=['POST'])
 def set_salary():

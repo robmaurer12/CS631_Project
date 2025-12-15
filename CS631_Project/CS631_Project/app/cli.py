@@ -1,6 +1,8 @@
 import click
 from flask.cli import with_appcontext
-from datetime import date
+from datetime import date, timedelta
+import random
+from sqlalchemy import func
 from .salary import pay_salaries
 from .models import (
     db,
@@ -8,6 +10,7 @@ from .models import (
     Department,
     Building,
     Project,
+    ProjectTeam,
     Employee,
     EmployeeProject,
     Room,
@@ -15,6 +18,8 @@ from .models import (
     DepartmentRoom,
     EmployeeSalary,
     SalaryPayment,
+    WorkLog,
+    Milestone
 )
 
 @click.command('seed-db')
@@ -24,7 +29,10 @@ def seed_db():
     Department.query.update({Department.employee_no: None})
     Division.query.update({Division.employee_no: None})
     Project.query.update({Project.manager_id: None})
+    ProjectTeam.query.update({ProjectTeam.project_id: None})
+    ProjectTeam.query.update({ProjectTeam.employee_id: None})
     db.session.commit()
+
 
     SalaryPayment.query.delete()
     EmployeeProject.query.delete()
@@ -370,18 +378,387 @@ def seed_db():
     ])
     db.session.commit()
 
-    # Projects
-    p1 = Project(project_number=501, budget=120000, date_started=date(2024, 1, 10), date_ended=None, manager_id=1)
-    p2 = Project(project_number=502, budget=80000, date_started=date(2023, 5, 20), date_ended=date(2024, 2, 20), manager_id=2)
-    db.session.add_all([p1, p2])
-    db.session.commit()
-
     # EmployeeProject assignments (history)
+    # db.session.add_all([
+    #     EmployeeProject(employee_no=1, project_number=501, hours_worked=300, role="Lead Developer"),
+    #     EmployeeProject(employee_no=2, project_number=502, hours_worked=450, role="Network Lead"),
+    #     EmployeeProject(employee_no=4, project_number=501, hours_worked=120, role="Data Analyst"),
+    # ])
+    # db.session.commit()
+
+    # Projects
+    p1 = Project(name = "CSC 631 Database", description = "Final Project for CSC 631", project_number=501, budget=120000, start_date=date(2024, 1, 10), end_date=None, manager_id=1)
+    p2 = Project(name = "Website Design", description = "Manage and Create your own Website", project_number=502, budget=80000, start_date=date(2023, 5, 20), end_date=date(2024, 2, 20), manager_id=2)
+    p3 = Project(name="Mobile App Development",description="Develop a mobile application for campus use",project_number=503,budget=95000,start_date=date(2024, 2, 1),end_date=None,manager_id=1)
+
+    p4 = Project(
+        name="E-Commerce Website",
+        description="Create an online shopping platform",
+        project_number=504,
+        budget=150000,
+        start_date=date(2023, 6, 10),
+        end_date=None,
+        manager_id=2
+    )
+
+    p5 = Project(
+        name="Cloud Migration",
+        description="Migrate systems to cloud infrastructure",
+        project_number=505,
+        budget=200000,
+        start_date=date(2023, 8, 1),
+        end_date=None,
+        manager_id=1
+    )
+
+    p6 = Project(
+        name="Data Analytics Platform",
+        description="Enterprise data analytics solution",
+        project_number=506,
+        budget=175000,
+        start_date=date(2024, 1, 15),
+        end_date=None,
+        manager_id=3
+    )
+
+    p7 = Project(
+        name="AI Recommendation System",
+        description="Machine learning recommendation engine",
+        project_number=507,
+        budget=220000,
+        start_date=date(2023, 10, 5),
+        end_date=None,
+        manager_id=2
+    )
+
+    p8 = Project(
+        name="CRM Implementation",
+        description="Customer relationship management system",
+        project_number=508,
+        budget=85000,
+        start_date=date(2023, 7, 20),
+        end_date=date(2024, 1, 30),
+        manager_id=1
+    )
+
+    p9 = Project(
+        name="Cybersecurity Upgrade",
+        description="Improve enterprise security posture",
+        project_number=509,
+        budget=120000,
+        start_date=date(2024, 3, 1),
+        end_date=None,
+        manager_id=3
+    )
+
+    p10 = Project(
+        name="DevOps Pipeline Automation",
+        description="Automate CI/CD pipelines",
+        project_number=510,
+        budget=110000,
+        start_date=date(2023, 11, 10),
+        end_date=None,
+        manager_id=2
+    )
+
+    p11 = Project(
+        name="ERP System Upgrade",
+        description="Upgrade ERP modules",
+        project_number=511,
+        budget=180000,
+        start_date=date(2023, 5, 1),
+        end_date=date(2024, 4, 1),
+        manager_id=1
+    )
+
+    p12 = Project(
+        name="Blockchain Proof of Concept",
+        description="Blockchain-based transaction prototype",
+        project_number=512,
+        budget=130000,
+        start_date=date(2024, 2, 20),
+        end_date=None,
+        manager_id=3
+    )
+
+    p13 = Project(
+        name="IoT Monitoring System",
+        description="IoT sensors for infrastructure monitoring",
+        project_number=513,
+        budget=140000,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 1, 15),
+        manager_id=2
+    )
+
+    p14 = Project(
+        name="UI/UX Redesign",
+        description="Redesign user interface and experience",
+        project_number=514,
+        budget=70000,
+        start_date=date(2023, 10, 1),
+        end_date=date(2024, 1, 15),
+        manager_id=1
+    )
+
+    p15 = Project(
+        name="API Integration Hub",
+        description="Centralized API integration system",
+        project_number=515,
+        budget=125000,
+        start_date=date(2024, 1, 25),
+        end_date=None,
+        manager_id=2
+    )
+
+    p16 = Project(
+        name="Machine Learning Pipeline",
+        description="Automated ML training pipeline",
+        project_number=516,
+        budget=210000,
+        start_date=date(2023, 12, 15),
+        end_date=None,
+        manager_id=3
+    )
+
+    p17 = Project(
+        name="Disaster Recovery Planning",
+        description="Design disaster recovery strategy",
+        project_number=517,
+        budget=90000,
+        start_date=date(2025, 3, 10),
+        end_date=None,
+        manager_id=1
+    )
+
+    p18 = Project(
+        name="Student Information System",
+        description="System for managing student records",
+        project_number=518,
+        budget=135000,
+        start_date=date(2025, 8, 15),
+        end_date=None,
+        manager_id=2
+    )
+
+    p19 = Project(
+        name="Online Learning Platform",
+        description="Web-based learning management system",
+        project_number=519,
+        budget=160000,
+        start_date=date(2023, 9, 10),
+        end_date=None,
+        manager_id=3
+    )
+
+    p20 = Project(
+        name="Library Management System",
+        description="Automate library operations",
+        project_number=520,
+        budget=95000,
+        start_date=date(2024, 1, 20),
+        end_date=None,
+        manager_id=1
+    )
+    db.session.add_all([p1, p2, p3, p4, p5, p6, p7, p8,
+        p9, p10, p11, p12, p13,
+        p14, p15, p16, p17, p18,
+        p19, p20])
+    db.session.commit()
+    #Project Teams
+
+    pt1 = ProjectTeam(project_id=503, employee_id=1)
+    pt2 = ProjectTeam(project_id=503, employee_id=2)
+    pt3 = ProjectTeam(project_id=503, employee_id=3)
+
+
+    pt4 = ProjectTeam(project_id=504, employee_id=4)
+    pt5 = ProjectTeam(project_id=504, employee_id=5)
+    pt6 = ProjectTeam(project_id=504, employee_id=6)
+
+
+    pt7 = ProjectTeam(project_id=505, employee_id=7)
+    pt8 = ProjectTeam(project_id=505, employee_id=8)
+    pt9 = ProjectTeam(project_id=505, employee_id=9)
+
+
+    pt10 = ProjectTeam(project_id=506, employee_id=10)
+    pt11 = ProjectTeam(project_id=506, employee_id=11)
+    pt12 = ProjectTeam(project_id=506, employee_id=12)
+
+
+    pt13 = ProjectTeam(project_id=507, employee_id=13)
+    pt14 = ProjectTeam(project_id=507, employee_id=14)
+    pt15 = ProjectTeam(project_id=507, employee_id=15)
+
+
+    pt16 = ProjectTeam(project_id=508, employee_id=16)
+    pt17 = ProjectTeam(project_id=508, employee_id=17)
+    pt18 = ProjectTeam(project_id=508, employee_id=18)
+
+
+    pt19 = ProjectTeam(project_id=509, employee_id=19)
+    pt20 = ProjectTeam(project_id=509, employee_id=20)
+    pt21 = ProjectTeam(project_id=509, employee_id=21)
+
+
+    pt22 = ProjectTeam(project_id=510, employee_id=22)
+    pt23 = ProjectTeam(project_id=510, employee_id=23)
+    pt24 = ProjectTeam(project_id=510, employee_id=24)
+
+
+    pt25 = ProjectTeam(project_id=511, employee_id=25)
+    pt26 = ProjectTeam(project_id=511, employee_id=26)
+    pt27 = ProjectTeam(project_id=511, employee_id=27)
+
+
+    pt28 = ProjectTeam(project_id=512, employee_id=28)
+    pt29 = ProjectTeam(project_id=512, employee_id=29)
+    pt30 = ProjectTeam(project_id=512, employee_id=30)
+
+
+    pt31 = ProjectTeam(project_id=513, employee_id=1)
+    pt32 = ProjectTeam(project_id=513, employee_id=4)
+    pt33 = ProjectTeam(project_id=513, employee_id=7)
+
+
+    pt34 = ProjectTeam(project_id=514, employee_id=2)
+    pt35 = ProjectTeam(project_id=514, employee_id=5)
+    pt36 = ProjectTeam(project_id=514, employee_id=8)
+
+
+    pt37 = ProjectTeam(project_id=515, employee_id=3)
+    pt38 = ProjectTeam(project_id=515, employee_id=6)
+    pt39 = ProjectTeam(project_id=515, employee_id=9)
+
+
+    pt40 = ProjectTeam(project_id=516, employee_id=10)
+    pt41 = ProjectTeam(project_id=516, employee_id=13)
+    pt42 = ProjectTeam(project_id=516, employee_id=16)
+
+
+    pt43 = ProjectTeam(project_id=517, employee_id=11)
+    pt44 = ProjectTeam(project_id=517, employee_id=14)
+    pt45 = ProjectTeam(project_id=517, employee_id=17)
+
+
+    pt46 = ProjectTeam(project_id=518, employee_id=12)
+    pt47 = ProjectTeam(project_id=518, employee_id=15)
+    pt48 = ProjectTeam(project_id=518, employee_id=18)
+
+
+    pt49 = ProjectTeam(project_id=519, employee_id=19)
+    pt50 = ProjectTeam(project_id=519, employee_id=22)
+    pt51 = ProjectTeam(project_id=519, employee_id=25)
+
+
+    pt52 = ProjectTeam(project_id=520, employee_id=20)
+    pt53 = ProjectTeam(project_id=520, employee_id=23)
+    pt54 = ProjectTeam(project_id=520, employee_id=26)
+    pt55 = ProjectTeam(project_id=501, employee_id=1)
+    pt56 = ProjectTeam(project_id=502, employee_id=2)
     db.session.add_all([
-        EmployeeProject(employee_no=1, project_number=501, hours_worked=300, role="Lead Developer"),
-        EmployeeProject(employee_no=2, project_number=502, hours_worked=450, role="Network Lead"),
-        EmployeeProject(employee_no=4, project_number=501, hours_worked=120, role="Data Analyst"),
+        pt1, pt2, pt3, pt4, pt5, pt6,
+        pt7, pt8, pt9, pt10, pt11, pt12,
+        pt13, pt14, pt15, pt16, pt17, pt18,
+        pt19, pt20, pt21, pt22, pt23, pt24,
+        pt25, pt26, pt27, pt28, pt29, pt30,
+        pt31, pt32, pt33, pt34, pt35, pt36,
+        pt37, pt38, pt39, pt40, pt41, pt42,
+        pt43, pt44, pt45, pt46, pt47, pt48,
+        pt49, pt50, pt51, pt52, pt53, pt54, pt55, pt56
     ])
+
+    db.session.commit()
+    db.session.commit()
+    projects = Project.query.all()
+    for project in projects:
+        if not project.team:
+            continue  
+        for team_member in project.team:
+            employee = team_member.employee
+            if not employee:
+                continue
+            
+           
+            hours_worked = round(random.uniform(5, 20), 2)
+            work_date = date.today() - timedelta(days=random.randint(0, 30))
+
+            worklog = WorkLog(
+                project_id=project.project_number,
+                employee_id=employee.employee_no,
+                hours_worked=hours_worked,
+                work_date=work_date
+            )
+
+            db.session.add(worklog)
+
+
+    db.session.commit()
+    def create_milestones():
+        projects = [
+            (501, date(2024, 1, 10)),
+            (502, date(2023, 5, 20)),
+            (503, date(2024, 2, 1)),
+            (504, date(2023, 6, 10)),
+            (505, date(2023, 8, 1)),
+            (506, date(2024, 1, 15)),
+            (507, date(2023, 10, 5)),
+            (508, date(2023, 7, 20)),
+            (509, date(2024, 3, 1)),
+            (510, date(2023, 11, 10)),
+            (511, date(2023, 5, 1)),
+            (512, date(2024, 2, 20)),
+            (513, date(2023, 9, 1)),
+            (514, date(2023, 10, 1)),
+            (515, date(2024, 1, 25)),
+            (516, date(2023, 12, 15)),
+            (517, date(2024, 3, 10)),
+            (518, date(2023, 8, 15)),
+            (519, date(2023, 9, 10)),
+            (520, date(2024, 1, 20)),
+        ]
+       
+        milestones = []
+
+        for project_id, start in projects:
+            project_obj = Project.query.filter_by(project_number=project_id).first()
+
+            milestone_status = "Completed" if project_obj and project_obj.end_date else None
+
+            milestones.extend([
+                Milestone(
+                    project_id=project_id,
+                    title="Requirements & Planning",
+                    description="Gather requirements, define scope, and create project plan",
+                    status=milestone_status or "Pending",
+                    due_date=start + timedelta(days=30)
+                ),
+                Milestone(
+                    project_id=project_id,
+                    title="Design & Architecture",
+                    description="System design, architecture planning, and technology selection",
+                    status=milestone_status or "In Progress",
+                    due_date=start + timedelta(days=60)
+                ),
+                Milestone(
+                    project_id=project_id,
+                    title="Implementation",
+                    description="Core development and feature implementation",
+                    status=milestone_status or "In Progress",
+                    due_date=start + timedelta(days=100)
+                ),
+                Milestone(
+                    project_id=project_id,
+                    title="Testing & Deployment",
+                    description="System testing, bug fixing, and production deployment",
+                    status=milestone_status or "Pending",
+                    due_date=start + timedelta(days=120)
+                ),
+            ])
+        db.session.add_all(milestones)
+    db.session.commit()
+    create_milestones()
     db.session.commit()
 
     salary_records = [
